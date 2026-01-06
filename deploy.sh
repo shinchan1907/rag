@@ -18,15 +18,16 @@ echo -e "${GREEN}Building Documentation...${NC}"
 
 # 3. Restart Services
 echo -e "${GREEN}Restarting Services...${NC}"
-# Try 'docker compose' first, fallback to 'docker-compose'
-if docker compose version > /dev/null 2>&1; then
-    DOCKER_COMPOSE_CMD="docker compose"
-else
-    DOCKER_COMPOSE_CMD="docker-compose"
+
+# Ensure Docker Compose Plugin is installed
+if ! docker compose version > /dev/null 2>&1; then
+    echo -e "${GREEN}Installing Docker Compose Plugin...${NC}"
+    sudo apt-get update
+    sudo apt-get install -y docker-compose-plugin
 fi
 
-$DOCKER_COMPOSE_CMD down --remove-orphans
-$DOCKER_COMPOSE_CMD up -d --build
+docker compose down --remove-orphans
+docker compose up -d --build
 
 # 4. Verify
 echo -e "${GREEN}Verifying Deployment...${NC}"
