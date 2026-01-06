@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Request, HTTPException, Query, BackgroundTasks, Response
 from app.core.config import settings
 from app.worker import ingest_document
 import logging
@@ -13,7 +13,7 @@ async def verify_webhook(
     challenge: str = Query(..., alias="hub.challenge"),
 ):
     if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
-        return int(challenge)
+        return Response(content=challenge, media_type="text/plain")
     raise HTTPException(status_code=403, detail="Verification failed")
 
 @router.post("/webhook")
