@@ -61,3 +61,17 @@ async def health_check():
         health_status["components"]["redis"] = f"disconnected: {str(e)}"
 
     return health_status
+
+@app.get("/debug/routes")
+async def list_routes():
+    """
+    List all registered routes for debugging.
+    """
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": route.path,
+            "name": route.name,
+            "methods": list(route.methods) if hasattr(route, "methods") else None
+        })
+    return {"routes": routes}
