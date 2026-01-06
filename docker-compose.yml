@@ -9,13 +9,13 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${CLOUDFLARE_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.email=${CLOUDFLARE_EMAIL:-sannygupta102@hotmail.com}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
       - DOCKER_API_VERSION=1.44
-      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
-      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
-      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_KEY} # Support for token format if provided in API_KEY slot
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL:-sannygupta102@hotmail.com}
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY:-1mGZMX4y6xbsp_EgZyBJrdNIbEVgvk5GgrXwQcPz}
+      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_KEY:-1mGZMX4y6xbsp_EgZyBJrdNIbEVgvk5GgrXwQcPz} # Support for token format if provided in API_KEY slot
     ports:
       - "80:80"
       - "443:443"
@@ -41,10 +41,10 @@ services:
       - chromadb
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN:-ai.bytenex.io}`)"
       - "traefik.http.routers.backend.entrypoints=web,websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
-      - "traefik.http.routers.backend.tls.domains[0].main=${DOMAIN}"
+      - "traefik.http.routers.backend.tls.domains[0].main=${DOMAIN:-ai.bytenex.io}"
       - "traefik.http.routers.backend.middlewares=auth"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
       - "traefik.docker.network=web"
@@ -56,9 +56,9 @@ services:
     image: postgres:15-alpine
     container_name: postgres_db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Account102@@}
+      POSTGRES_DB: ${POSTGRES_DB:-jyoti_ai}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -87,7 +87,7 @@ services:
     command: sh -c "yarn install && yarn start --host 0.0.0.0"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.docs.rule=Host(`${DOMAIN}`) && PathPrefix(`/documentation`)"
+      - "traefik.http.routers.docs.rule=Host(`${DOMAIN:-ai.bytenex.io}`) && PathPrefix(`/documentation`)"
       - "traefik.http.routers.docs.entrypoints=websecure"
       - "traefik.http.routers.docs.tls.certresolver=myresolver"
       - "traefik.http.routers.docs.middlewares=auth"
@@ -104,7 +104,7 @@ services:
       - internal
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`${DOMAIN}`) && PathPrefix(`/prometheus`)"
+      - "traefik.http.routers.prometheus.rule=Host(`${DOMAIN:-ai.bytenex.io}`) && PathPrefix(`/prometheus`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
       - "traefik.http.routers.prometheus.middlewares=auth"
@@ -113,14 +113,14 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     environment:
-      - GF_SERVER_ROOT_URL=https://${DOMAIN}/grafana/
+      - GF_SERVER_ROOT_URL=https://${DOMAIN:-ai.bytenex.io}/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
     networks:
       - internal
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`${DOMAIN}`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.rule=Host(`${DOMAIN:-ai.bytenex.io}`) && PathPrefix(`/grafana`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
       - "traefik.http.routers.grafana.middlewares=auth"
