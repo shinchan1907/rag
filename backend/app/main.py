@@ -1,37 +1,36 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from .routers import whatsapp, knowledge, activity
-from .config import settings
+from fastapi import FastAPI
+import os
+import psycopg2
+import redis
 
-from prometheus_fastapi_instrumentator import Instrumentator
-
-app = FastAPI(
-    title="Jyoti AI API",
-    description="Backend for Jyoti AI - Personal RAG-powered AI Companion",
-    version="1.0.0",
-)
-
-# Prometheus Instrumentation
-Instrumentator().instrument(app).expose(app)
-
-# CORS Middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include Routers
-app.include_router(whatsapp.router, prefix="/webhook", tags=["whatsapp"])
-app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
-app.include_router(activity.router, prefix="/api/activity", tags=["activity"])
+app = FastAPI(title="Jyoti AI MVP")
 
 @app.get("/")
-async def root():
-    return {"message": "Jyoti AI is online and keeping things in order. - Donna"}
+def read_root():
+    return {"status": "online", "message": "Jyoti AI MVP is running"}
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+def health_check():
+    # Check DB
+    db_status = "unknown"
+    try:
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        conn.close()
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    # Check Redis
+    redis_status = "unknown"
+    try:
+        r = redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+        r.ping()
+        redis_status = "connected"
+    except Exception as e:
+        redis_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "redis": redis_status
+    }

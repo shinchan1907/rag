@@ -1,26 +1,26 @@
 #!/bin/bash
 
-# Pull the latest changes
+# 1. Pull latest code
 git pull
 
-# Check Docker version on host
+# 2. Check Docker version for debugging
 docker version
 
-# Verify config
-echo "Verifying Docker config in compose file..."
-grep "DOCKER" docker-compose.yml
-
-# Clean up old containers
+# 3. Clean up EVERYTHING (Containers, Networks, Orphans)
 docker compose down --remove-orphans
 
-# Rebuild and restart the containers
+# 4. Prune unused images to save space (Optional but good for clean slate)
+docker image prune -f
+
+# 5. Build and Start
 docker compose up -d --build
 
-# Show the status
+# 6. Wait a moment and show status
+sleep 5
 docker compose ps
 
-# Show logs
-echo "Checking backend logs..."
-docker compose logs --tail=20 fastapi_backend
-echo "Checking traefik logs..."
+# 7. Show logs to verify startup
+echo "--- Traefik Logs ---"
 docker compose logs --tail=20 traefik
+echo "--- Backend Logs ---"
+docker compose logs --tail=20 fastapi_backend
