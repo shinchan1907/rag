@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+from urllib.parse import quote_plus
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Jyoti AI"
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
     def get_database_url(self) -> str:
         if self.DATABASE_URL:
             return self.DATABASE_URL
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+        encoded_password = quote_plus(self.POSTGRES_PASSWORD)
+        return f"postgresql://{self.POSTGRES_USER}:{encoded_password}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
 settings = Settings()

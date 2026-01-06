@@ -30,6 +30,9 @@ echo -e "${GREEN}[5/5] Verifying Deployment...${NC}"
 sleep 5
 docker compose ps
 
+echo -e "${YELLOW}--- Backend Logs (Last 50 lines) ---${NC}"
+docker compose logs --tail=50 backend
+
 echo -e "${YELLOW}--- Traefik Logs (Last 20 lines) ---${NC}"
 docker compose logs --tail=20 traefik
 
