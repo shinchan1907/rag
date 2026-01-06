@@ -6,6 +6,10 @@ git pull
 # Check Docker version on host
 docker version
 
+# Verify config
+echo "Verifying Docker config in compose file..."
+grep "DOCKER" docker-compose.yml
+
 # Clean up old containers
 docker compose down --remove-orphans
 

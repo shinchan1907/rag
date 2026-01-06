@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     container_name: traefik
     command:
       - "--log.level=DEBUG" # Enable Debug logs for troubleshooting
@@ -15,8 +15,9 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=sannygupta102@hotmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
-      # Explicitly set API version to match host requirement
-      - DOCKER_API_VERSION=1.44
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      # Set API version to 1.45 (Safe bet for Docker Engine v29+)
+      - DOCKER_API_VERSION=1.45
     # Force Public DNS
     dns:
       - 8.8.8.8
