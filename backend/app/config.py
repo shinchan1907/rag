@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     WHATSAPP_WEBHOOK_VERIFY_TOKEN: str = "default_token"
 
     # Owners
-    OWNER_NUMBERS: List[str] = ["919872944859", "917087215463"]
+    OWNER_NUMBERS: str = "919872944859,917087215463"
+
+    @property
+    def owner_list(self) -> List[str]:
+        return [n.strip() for n in self.OWNER_NUMBERS.split(",")]
 
     # Database
     DATABASE_URL: str = "postgresql://admin:Account102@@@db:5432/jyoti_ai"

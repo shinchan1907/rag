@@ -20,7 +20,7 @@ async def _notify_job():
     emails = await list_recent_emails(service)
     if emails:
         # Simple logic: notify owner about new emails
-        for owner in settings.OWNER_NUMBERS:
+        for owner in settings.owner_list:
             await send_whatsapp_message(owner, f"Sir, you have {len(emails)} new emails. Should I summarize them for you?")
 
 # Beat schedule

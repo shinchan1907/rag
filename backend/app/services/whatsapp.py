@@ -66,7 +66,7 @@ async def process_incoming_message(body: dict):
         if not text:
             return
 
-        is_owner = from_number in settings.OWNER_NUMBERS
+        is_owner = from_number in settings.owner_list
         
         # Get AI response
         # TODO: Fetch chat history from Redis/Postgres
