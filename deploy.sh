@@ -3,6 +3,9 @@
 # Pull the latest changes
 git pull
 
+# Check Docker version on host
+docker version
+
 # Clean up old containers
 docker compose down --remove-orphans
 
