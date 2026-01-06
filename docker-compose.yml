@@ -3,19 +3,20 @@ services:
     image: traefik:v3.1
     container_name: traefik
     command:
+      - "--log.level=DEBUG" # Enable Debug logs for troubleshooting
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      # Use HTTP Challenge (Simpler and more robust)
+      # HTTP Challenge for Let's Encrypt (Works with Cloudflare Grey Cloud)
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=sannygupta102@hotmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
       - DOCKER_API_VERSION=1.44
-    # Force Public DNS to resolve network issues
+    # Force Public DNS
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -29,6 +30,7 @@ services:
       - web
     labels:
       - "traefik.enable=true"
+      # Auth middleware defined but ONLY used for Dashboard now
       - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$pE8r4/$$QG6H8XU.7pG2q7X7eUjW/0"
       # Dashboard
       - "traefik.http.routers.dashboard.rule=Host(`ai.bytenex.io`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
@@ -42,7 +44,6 @@ services:
     container_name: fastapi_backend
     restart: always
     env_file: .env
-    # Force Public DNS to resolve network issues
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -59,7 +60,8 @@ services:
       - "traefik.http.routers.backend.entrypoints=web,websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
       - "traefik.http.routers.backend.tls.domains[0].main=ai.bytenex.io"
-      - "traefik.http.routers.backend.middlewares=auth"
+      # REMOVED AUTH MIDDLEWARE: It blocks public API/Webhooks
+      # - "traefik.http.routers.backend.middlewares=auth"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
       - "traefik.docker.network=web"
     networks:
@@ -91,53 +93,53 @@ services:
       - ./chroma_db:/chroma/chroma
     networks:
       - internal
+  # MVP: Disabled non-essential services
+  # docs:
+  #   image: node:20-alpine
+  #   container_name: docusaurus_docs
+  #   working_dir: /app
+  #   volumes:
+  #     - ./docs:/app
+  #   command: sh -c "yarn install && yarn start --host 0.0.0.0"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.docs.rule=Host(`ai.bytenex.io`) && PathPrefix(`/documentation`)"
+  #     - "traefik.http.routers.docs.entrypoints=websecure"
+  #     - "traefik.http.routers.docs.tls.certresolver=myresolver"
+  #     - "traefik.http.routers.docs.middlewares=auth"
+  #   networks:
+  #     - web
+  #     - internal
 
-  docs:
-    image: node:20-alpine
-    container_name: docusaurus_docs
-    working_dir: /app
-    volumes:
-      - ./docs:/app
-    command: sh -c "yarn install && yarn start --host 0.0.0.0"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.docs.rule=Host(`ai.bytenex.io`) && PathPrefix(`/documentation`)"
-      - "traefik.http.routers.docs.entrypoints=websecure"
-      - "traefik.http.routers.docs.tls.certresolver=myresolver"
-      - "traefik.http.routers.docs.middlewares=auth"
-    networks:
-      - web
-      - internal
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - internal
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.prometheus.rule=Host(`ai.bytenex.io`) && PathPrefix(`/prometheus`)"
+  #     - "traefik.http.routers.prometheus.entrypoints=websecure"
+  #     - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+  #     - "traefik.http.routers.prometheus.middlewares=auth"
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`ai.bytenex.io`) && PathPrefix(`/prometheus`)"
-      - "traefik.http.routers.prometheus.entrypoints=websecure"
-      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
-      - "traefik.http.routers.prometheus.middlewares=auth"
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    environment:
-      - GF_SERVER_ROOT_URL=https://ai.bytenex.io/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-    networks:
-      - internal
-      - web
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`ai.bytenex.io`) && PathPrefix(`/grafana`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
-      - "traefik.http.routers.grafana.middlewares=auth"
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   environment:
+  #     - GF_SERVER_ROOT_URL=https://ai.bytenex.io/grafana/
+  #     - GF_SERVER_SERVE_FROM_SUB_PATH=true
+  #   networks:
+  #     - internal
+  #     - web
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.grafana.rule=Host(`ai.bytenex.io`) && PathPrefix(`/grafana`)"
+  #     - "traefik.http.routers.grafana.entrypoints=websecure"
+  #     - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+  #     - "traefik.http.routers.grafana.middlewares=auth"
 
 networks:
   web:

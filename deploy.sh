@@ -3,12 +3,17 @@
 # Pull the latest changes
 git pull
 
+# Clean up old containers
+docker compose down --remove-orphans
+
 # Rebuild and restart the containers
 docker compose up -d --build
 
 # Show the status
 docker compose ps
 
-# Show backend logs to check for startup errors
+# Show logs
 echo "Checking backend logs..."
-docker compose logs --tail=50 fastapi_backend
+docker compose logs --tail=20 fastapi_backend
+echo "Checking traefik logs..."
+docker compose logs --tail=20 traefik
