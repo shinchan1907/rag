@@ -15,8 +15,10 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=${CLOUDFLARE_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
+      - DOCKER_API_VERSION=1.44
       - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
       - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
+      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_KEY} # Support for token format if provided in API_KEY slot
     ports:
       - "80:80"
       - "443:443"
