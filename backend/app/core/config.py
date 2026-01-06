@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     # Domain
     DOMAIN: str
 
+    # WhatsApp
+    WHATSAPP_ACCESS_TOKEN: str = ""
+    WHATSAPP_VERIFY_TOKEN: str = "default_token"
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
+
     class Config:
         case_sensitive = True
         env_file = ".env"

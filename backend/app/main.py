@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.api.api import api_router
 import redis
 import psycopg2
 from psycopg2 import OperationalError
@@ -10,6 +11,9 @@ app = FastAPI(
     version=settings.VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+# Include API Router
+app.include_router(api_router)
 
 # CORS
 app.add_middleware(
