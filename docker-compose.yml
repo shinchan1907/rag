@@ -15,7 +15,8 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=sannygupta102@hotmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
-      - DOCKER_API_VERSION=1.44
+      # Downgraded API version for compatibility with host Docker daemon
+      - DOCKER_API_VERSION=1.41
     # Force Public DNS
     dns:
       - 8.8.8.8
