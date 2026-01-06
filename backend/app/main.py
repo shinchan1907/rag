@@ -1,36 +1,59 @@
 from fastapi import FastAPI
-import os
-import psycopg2
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 import redis
+import psycopg2
+from psycopg2 import OperationalError
 
-app = FastAPI(title="Jyoti AI MVP")
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
-def read_root():
-    return {"status": "online", "message": "Jyoti AI MVP is running"}
+async def root():
+    """
+    Root endpoint to verify the service is running.
+    """
+    return {
+        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "status": "online",
+        "docs": f"https://{settings.DOMAIN}/docs"
+    }
 
 @app.get("/health")
-def health_check():
-    # Check DB
-    db_status = "unknown"
+async def health_check():
+    """
+    Health check endpoint for Docker and monitoring.
+    """
+    health_status = {"status": "healthy", "components": {}}
+    
+    # Check Postgres
     try:
-        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        conn = psycopg2.connect(settings.get_database_url())
         conn.close()
-        db_status = "connected"
-    except Exception as e:
-        db_status = f"error: {str(e)}"
+        health_status["components"]["db"] = "connected"
+    except OperationalError as e:
+        health_status["status"] = "degraded"
+        health_status["components"]["db"] = f"disconnected: {str(e)}"
 
     # Check Redis
-    redis_status = "unknown"
     try:
-        r = redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+        r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, socket_connect_timeout=1)
         r.ping()
-        redis_status = "connected"
+        health_status["components"]["redis"] = "connected"
     except Exception as e:
-        redis_status = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+        health_status["components"]["redis"] = f"disconnected: {str(e)}"
 
-    return {
-        "status": "healthy",
-        "database": db_status,
-        "redis": redis_status
-    }
+    return health_status
