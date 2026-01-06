@@ -8,14 +8,17 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # Use HTTP Challenge (Simpler and more robust)
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=sannygupta102@hotmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     environment:
       - DOCKER_API_VERSION=1.44
-      - CLOUDFLARE_EMAIL=sannygupta102@hotmail.com
-      - CLOUDFLARE_API_KEY=1mGZMX4y6xbsp_EgZyBJrdNIbEVgvk5GgrXwQcPz
-      - CLOUDFLARE_DNS_API_TOKEN=1mGZMX4y6xbsp_EgZyBJrdNIbEVgvk5GgrXwQcPz
+    # Force Public DNS to resolve network issues
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "80:80"
       - "443:443"
@@ -39,6 +42,10 @@ services:
     container_name: fastapi_backend
     restart: always
     env_file: .env
+    # Force Public DNS to resolve network issues
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       - DATABASE_URL=postgresql://admin:Account102%40%40@db:5432/jyoti_ai
       - DOMAIN=ai.bytenex.io
